@@ -1,25 +1,20 @@
-# Simulator
+from microbit import *
+import radio
+radio.config(group=1)
+radio.on()
+light = Image(5,5) # create an empty image
 
-The JavaScript simulator allows you to test and execute most BBC micro:bit programs in the browser.
-It allows you to emulate sensor data or user interactions.
+# function to map signal stength to LED brightness
+def map(value, fromMin, fromMax, toMin, toMax):
+    fromRange = fromMax - fromMin
+    toRange = toMax - toMin
+    valueScaled = float(value - fromMin) / float(fromRange)
+    return toMin + (valueScaled * toRange)
 
-```sim
-input.onButtonPressed(Button.A, () => {
-   basic.showString("A");
-});
-input.onButtonPressed(Button.B, () => {
-   basic.showString("B");
-});
-input.onPinPressed(TouchPin.P0, () => {
-   basic.showString("0");
-});
-input.onPinPressed(TouchPin.P1, () => {
-   basic.showString("1");
-});
-input.onPinPressed(TouchPin.P2, () => {
-   basic.showString("2");
-});
-input.temperature()
-input.compassHeading()
-input.lightLevel()
-```
+while True:
+    message = radio.receive_full()
+    if message:
+        signal = message[1]
+        brightness = map(signal, -98, -44, 0, 9)
+        light.fill(round(brightness))
+        display.show(light)
